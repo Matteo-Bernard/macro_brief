@@ -650,22 +650,22 @@ cnn_df
 # ### Spreads
 
 # %%
-from EcoWatch.Scraping import oat, tbond, ester, bunds, fed_funds, euro_yield
+from EcoWatch.Scraping import oat, tbond, bunds, fed_funds, ecb
 import datetime as dt
 import pandas as pd
 
-ester_df = ester()
+ester_df = ecb('EST.B.EU000A2QQF16.CR')
 sofr_df = fed_funds('SOFR')['Rate (%)']
 
 oat_df = oat()
 bunds_df = bunds()
-euro_df = euro_yield(category='ARI')
+euro_df = ecb('YC.B.U2.EUR.4F.G_N_C.SV_C_YM.SR_10Y')
 tbond_df = tbond('2023', str(dt.datetime.now().year))
 
 bonds_data = pd.DataFrame({
     '10Y France'    : oat_df['10Y'],
     '10Y Allemagne' : bunds_df['10Y'],
-    '10Y Europe'    : euro_df['10Y'],
+    '10Y Europe'    : euro_df,
     '10Y Etats Unis': tbond_df['10Y'],
     'ESTER'         : ester_df,
     'SOFR'          : sofr_df
@@ -824,25 +824,27 @@ calendar_df = economic_calendar(
     to_date = None
 )
 
-calendar_df.index = calendar_df['id']
+try:
+    calendar_df.index = calendar_df['id']
 
-for event in calendar_df.index:
-    importance = calendar_df.loc[event, 'importance']
-    zone = calendar_df.loc[event, 'zone']
-    if importance == 'medium' and zone == 'united states':
-        calendar_df.drop(event, axis=0, inplace=True)
+    for event in calendar_df.index:
+        importance = calendar_df.loc[event, 'importance']
+        zone = calendar_df.loc[event, 'zone']
+        if importance == 'medium' and zone == 'united states':
+            calendar_df.drop(event, axis=0, inplace=True)
 
-country_list = calendar_df['zone']
-country_list = [country.replace("china", 'Chine') for country in country_list]
-country_list = [country.replace("france", 'France') for country in country_list]
-country_list = [country.replace("united states", 'Etats-Unis') for country in country_list]
-country_list = [country.replace("euro zone", 'Zone Euro') for country in country_list]
-calendar_df = calendar_df.set_index(pd.Series(country_list, name='Pays'))
+    country_list = calendar_df['zone']
+    country_list = [country.replace("china", 'Chine') for country in country_list]
+    country_list = [country.replace("france", 'France') for country in country_list]
+    country_list = [country.replace("united states", 'Etats-Unis') for country in country_list]
+    country_list = [country.replace("euro zone", 'Zone Euro') for country in country_list]
+    calendar_df = calendar_df.set_index(pd.Series(country_list, name='Pays'))
 
-calendar_df = calendar_df.drop(columns=['id', 'date', 'currency', 'importance', 'zone'])
-calendar_df.columns = ['Heure (UTC +2:00)', 'Evènement', 'Actuel', 'Consensus', 'Précédent']
-calendar_df = calendar_df.fillna('-')
-
+    calendar_df = calendar_df.drop(columns=['id', 'date', 'currency', 'importance', 'zone'])
+    calendar_df.columns = ['Heure (UTC +2:00)', 'Evènement', 'Actuel', 'Consensus', 'Précédent']
+    calendar_df = calendar_df.fillna('-')
+except:
+    calendar_df = pd.DataFrame(data=None, columns=['Pays', 'heure (UTC +2:00)', 'Evènement', 'Actuel', 'Consensus', 'Précédent'])
 # %% [markdown]
 # ## 4. Partie Revue d'Articles
 
@@ -1017,8 +1019,10 @@ import ssl
 from email.message import EmailMessage
 import winsound
 import json
+import os
 
-with open('metadata.json', 'r') as f:
+#with open(os.getcwd() + '\\metadata.json', 'r') as f:
+with open(os.path.join(os.path.dirname(__file__), 'metadata.json'), 'r') as f:
     metadata = json.load(f)
     receiver = metadata['receiver']
     sender = metadata['sender']
