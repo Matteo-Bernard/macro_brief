@@ -2,6 +2,40 @@
 # ## 1. Introduction et Conclusion
 
 # %%
+
+import pandas as pd
+
+def format_html(df):
+    html_table = df.reset_index().to_html(classes='table-style', index=False, escape=False)
+
+    html_with_css = f"""
+    <style>
+        .table-style {{
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-size: 14px;
+            color: #333;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }}
+        .table-style th, .table-style td {{
+            padding: 12px 16px;
+            border-bottom: 1px solid #eee;
+            text-align: center;
+            background-color: #ffffff;
+        }}
+        .table-style th {{
+            background-color: #f5f7fa;
+            font-weight: 600;
+        }}
+    </style>
+    {html_table}
+    """
+    return html_with_css
+
 import datetime as dt
 synthesis = f"""
 <table style="font-family: Segoe UI, Tahoma, sans-serif; font-size: 16px;">
