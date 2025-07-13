@@ -1,3 +1,5 @@
 .env
 __pycache__/
 metadata.json
+metadata_test.json
+metadata_prod.json
